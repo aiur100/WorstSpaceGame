@@ -1,0 +1,483 @@
+<HTML>
+<head>
+	<title>The Worst Space Game Ever</title>
+	<link href='http://fonts.googleapis.com/css?family=Press+Start+2P' rel='stylesheet' type='text/css'>
+</head>
+
+<body>
+	<script>
+	
+		/*
+		===========================================
+		The Worst Space Game Ever
+		===========================================
+		Coding, art, and music by Christopher Rene Hill Cronenbold
+		-------------------------------------------
+		Description -
+		This is a web based Javascript and HTML5 game made for 
+		Google Chrome.  
+		
+		All source code, if reused, must include the original author's
+		name.  
+		-------------------------------------------
+		===========================================
+		*/
+		
+		var bullets = 60;
+		
+		var xPosition = 100;
+		var yPosition = 420;
+		
+		var xMove = 0;
+		var yMove = 0;
+		
+		var realMove = 0;
+		var yBullet = 419;
+		
+		var shotSpeed = 40;
+		
+		var points = 0;
+		
+		// POWER UP VARIABLES
+		//-------------------
+		var power = 0;
+		var appearX = 0;
+		var appearY = 0;
+		
+	
+		function playSound(sound) 
+		{
+			document.getElementById(sound).play();
+		}
+		
+		function shotsLeft()
+		{
+			var c=document.getElementById("frame");
+			var ctx=c.getContext("2d");
+				
+			ctx.font="12px Verdana";
+			ctx.clearRect(100,470,200,400);
+			ctx.fillStyle = 'white';
+			ctx.fillText('Photon Charges:'+bullets, 100, 483);
+		}
+			
+			
+		function checkPowerHit(firex, firey, x, y)
+		{	
+			shotsLeft();
+						
+			if (firex == x && firey == y)
+			{
+				playSound('power');
+				
+				bgChange('super');
+				var loopTimer = setTimeout('bgChange("bg")', 1000);
+				
+				
+				points = points + 50;
+				shotSpeed = shotSpeed - 5;
+				bullets = bullets + 4;
+				
+				ship();
+				screenPoints();
+				//powerUp();
+				
+				firex = 0;
+				firey = 0;
+				
+			}
+		}
+			
+		function powerUp()
+		{
+			var c=document.getElementById("frame");
+			var ctx=c.getContext("2d");
+			var appear = Math.floor((Math.random()*40)+1);
+			
+			
+			
+			if (appear == 1 && power == 0)
+			{
+				ctx.clearRect(appearX, appearY, 10, 10);
+				ctx.fillStyle = 'blue';
+				
+				appearX = Math.floor(Math.random()*41)*10;
+				appearY = Math.floor(Math.random()*41)*10;
+			
+				ctx.fillRect(appearX, appearY, 10, 10);
+				power = 1;
+				var loopTimer = setTimeout('powerUpCheck()', 2000);
+			}
+			var loopTimer = setTimeout('powerUp()', 1000);
+		}
+		
+		function powerUpCheck()
+		{
+			if(power == 1)
+			{
+				power = 0;
+				var loopTimer = setTimeout('powerUp()', 1000);
+			}
+		}
+		
+		 
+		
+		/*
+		===========================================
+		Function - draw()
+		===========================================
+		x - position, y - position
+		-------------------------------------------
+		Description -
+		This draws a linear moving (left right, and
+		vice versa).
+			
+		-------------------------------------------
+		===========================================
+		*/
+		function draw(x,y)
+		{
+			var canvas = document.getElementById('frame'),
+			c = canvas.getContext("2d");
+			
+			c.clearRect(xMove, yMove, 17, 17);
+			c.fillStyle = 'red';
+			
+			if (realMove < 500 && realMove >= 0)
+			{
+				xMove = xMove+10;
+				realMove = realMove + 10;
+			}
+			else if(realMove >= 500 && realMove < 1000)
+			{
+				xMove = xMove-10;
+				realMove = realMove + 10;
+			}
+			else if(realMove >= 1000)
+			{
+				realMove = 0;
+			}
+			
+			//c.fillRect(xMove, yMove, 10, 10);
+			var img=document.getElementById('enemy');		
+			c.drawImage(img,xMove, yMove);
+
+			if (points < 500)
+			{
+				var loopTimer = setTimeout('draw('+x+','+y+')', 200);
+			}
+			else if (points >= 500 && points < 1000)
+			{
+				var loopTimer = setTimeout('draw('+x+','+y+')', 100);
+			}
+			else if (points >= 1000 && points < 1500)
+			{
+				var loopTimer = setTimeout('draw('+x+','+y+')', 50);
+			}
+			else if (points >= 1500 && points < 2000)
+			{
+				var loopTimer = setTimeout('draw('+x+','+y+')', 40);
+			}
+			else if (points >= 2000 && points < 2500)
+			{
+				var loopTimer = setTimeout('draw('+x+','+y+')', 20);
+			}
+			
+		}
+		
+		/*
+		===========================================
+		Function Name: hit();
+		===========================================
+		Parameters / Arguments - position of bullet x,
+		position of bullet y, position of enemy x, position of enemy y
+		-------------------------------------------
+		Description - This function determines if the bullet
+		hits an enemy. It does this by comparing the position of 
+		bullet and the position of the enemy.  If they match, 
+		then a hit is registered.
+			
+		-------------------------------------------
+		===========================================
+		*/
+		
+		var hit = function(firex,firey, x, y)
+		{	
+			if ( firex == x && firey == y)
+			{
+				points = points + 100;
+				
+				playSound('bomb');
+				ship();
+				screenPoints();
+				powerUp();
+				
+				bgChange('destroyed');
+				var loopTimer = setTimeout('bgChange("bg")', 1000);
+				
+				firex = 0;
+				firey = 0;
+				
+			}
+			
+		}
+		
+		
+		var bgChange = function(fileName)
+		{	
+			document.getElementsByTagName("canvas")[0].setAttribute("style",'background:url('+fileName+'.jpg)'); 
+		}
+		
+		var restoreScreen = function()
+		{
+			canvas = document.getElementById('frame'),
+			c = canvas.getContext("2d");
+			c.clearRect(10, 10, 500, 500);
+			ship();
+		}
+		
+		var screenPoints = function()
+		{
+			var canvas = document.getElementById('frame');
+			var ctx = canvas.getContext("2d");
+			
+			restoreScreen();
+			ctx.font="18px Verdana";
+			c.clearRect(100, 100, 20, 30);
+			ctx.fillStyle = 'white';
+			ctx.fillText("Points: "+points, 390, 485);
+		}
+		
+		var restart = function()
+		{
+			location.reload();
+		}
+		/*
+		===========================================
+		Function Name: ship()
+		===========================================
+		Parameters / Arguments - None
+		-------------------------------------------
+		Description -  Draws the unit depending 
+		where the unit is after user control.
+			
+		-------------------------------------------
+		===========================================
+		*/
+		var ship = function()
+		{
+			var canvas = document.getElementById('frame');
+			c = canvas.getContext("2d");
+			c.clearRect(xPosition, yPosition, 30,30);
+				
+			var img=document.getElementById('ship');		
+			c.drawImage(img,xPosition, yPosition);
+		}
+		
+		
+		
+		/*
+		===========================================
+		Function Name: setFire()
+		===========================================
+		Parameters / Arguments - xOrg,xLoc,yLoc
+		xOrg is the original point of origin the 
+		fire was shot.
+		-------------------------------------------
+		Description -
+			
+		-------------------------------------------
+		===========================================
+		*/
+		function setFire(xOrg,xLoc,yLoc, direction, color, playSound)
+		{
+		
+			
+			this.xOrg = xOrg;
+			this.xLoc = xLoc;
+			this.yLoc = yLoc;
+			this.direction = direction;
+			this.color = color;
+			this.playSound = playSound;
+			
+			if(playSound)
+			{
+				playSound('laserSound');
+			}
+			
+			this.drawFire = function()
+			{
+				
+				this.canvas = document.getElementById('frame'),
+				this.c = this.canvas.getContext("2d");
+				
+				this.c.clearRect(this.xLoc, this.yLoc, 15, 15);
+				
+				//this.c.fillStyle = color;
+				
+				if(direction)
+				{
+					this.yLoc = this.yLoc - 10;
+					checkPowerHit(this.xLoc, this.yLoc, appearX, appearY);
+					hit(this.xLoc,this.yLoc, xMove, yMove);
+				}
+				else
+				{
+					this.yLoc = this.yLoc + 10;
+					hit(this.xLoc,this.yLoc, xPosition, yPosition);
+				}
+				
+				this.img = document.getElementById('missle');		
+				this.c.drawImage(this.img,this.xLoc, this.yLoc);
+				
+				//this.c.fillRect(this.xLoc, this.yLoc, 10, 10);
+				
+				if ( this.yLoc >= 0)
+				{
+					setTimeout(this.drawFire.bind(this), shotSpeed);
+				}
+				
+				
+			}
+		}
+		
+		var shipFire = function()
+		{
+			shipFired = new setFire(xMove, xMove, yMove, 0, 'yellow', 0);
+			shipFired.drawFire();
+			setTimeout('shipFire()', 1000);
+		}
+			
+		
+		
+		window.onload = function()
+		{
+			//This draws the ship
+			ship();
+			//This draws the red dwarf
+			draw(0,0);
+			//playSound('song');
+			screenPoints();
+			//This starts the power random generator	
+			powerUp();
+			//This starts up the shots tracker display and recording.
+			shotsLeft();
+			shipFire();
+		}
+	
+		
+		
+		window.onkeydown = function(e)
+		{
+			if ( e.keyCode == 37 && xPosition > 10 )
+			{
+					var canvas = document.getElementById('frame');
+					c = canvas.getContext("2d");
+			
+					c.clearRect(xPosition, yPosition, 30,30);
+						
+					c.fillStyle = 'white';
+					xPosition = xPosition - 10;
+					var img=document.getElementById('ship');
+					
+					c.drawImage(img,xPosition, yPosition);
+
+					
+			}
+			else if ( e.keyCode == 39 && xPosition < 470)
+			{
+					var canvas = document.getElementById('frame');
+					c = canvas.getContext("2d");
+			
+					c.clearRect(xPosition, yPosition, 30,30);
+						
+					c.fillStyle = 'white';
+					xPosition = xPosition + 10;
+					var img=document.getElementById('ship');
+					
+					c.drawImage(img,xPosition, yPosition);
+					
+			}
+			else if (e.keyCode == 70)
+			{
+				if (bullets > 0)
+				{
+					stuff = new setFire(xPosition, xPosition, yPosition, 1, 'red', 0);
+					stuff.drawFire();
+					bullets = bullets - 1;
+				}
+							
+			}
+			
+			
+		}
+		
+		
+		
+		
+	
+	</script>
+	
+	<style>
+	
+		body 
+		{
+			background: #000000;
+			color: blue;
+			font-family: 'Press Start 2P', cursive;
+			font-size: 14px;
+			background: url(bg.jpg);
+		}
+		
+		#container 
+		{
+			width: 100%;
+			margin: auto;
+			text-align: center;
+		}
+	
+	</style>
+	
+	<div class="container">
+	
+		<div id = "box" style="margin-left: 26%%; margin-right: 30%;">
+		
+			<img src="destroyed.jpg" id="destroyed" hidden/>
+			<img src="bg.jpg" id="bg" hidden/>
+			<img src="ship.png" id="ship" hidden/>
+			<img src="super.jpg" id="powerup" hidden/>
+			<img src="missle.png" id="missle" hidden/>
+			<img src="enemy.png" id="enemy" hidden/>
+			
+				<audio id="laserSound">
+					<source src="laser.mp3" type="audio/mpeg">
+				</audio>
+				
+				<audio id="bomb">
+					<source src="bomb.mp3" type="audio/mpeg">
+				</audio>
+				
+				<audio id="power">
+					<source src="power.mp3" type="audio/mpeg">
+				</audio>
+				
+				<audio id="song" loop>
+					<source src="videoGame.mp3" type="audio/mpeg" >
+				</audio>
+			
+			<h1 style="text-align: center;">Destroy The Red Dwarf!</h1>
+				<canvas id="frame" width="500" height="500" style="background: url(bg.jpg)" onclick="draw(0,0)">
+				
+					 GET GOOGLE CHROME
+				
+				</canvas>
+			<b>Use arrow keys to go left or right.  Press F to fire. <br><input type="button" value="------ Restart Game --------" onclick="restart();" /></b>
+		</div>
+	
+	</div>
+	
+	
+	
+</body>
+
+</HTML>
